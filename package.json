@@ -1,0 +1,33 @@
+{
+	"name": "@goaicorporation/sanlam-ocr-sdk",
+	"version": "1.0.1",
+	"description": "SDK pour extractions d'informations sur document.",
+	"main": "index.js",
+	"exports": {
+		"import": "./index.js",
+		"require": "./index.cjs",
+		"default": "./index.js"
+	},
+	"type": "module",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"repository": {
+		"type": "git"
+	},
+	"keywords": [
+		"sanlam",
+		"sdk",
+		"nodejs",
+		"ocr",
+		"optical-character-recognition"
+	],
+	"author": "GO AI CORPORATION <contact@goaicorporation.org>",
+	"license": "MIT",
+	"homepage": "",
+	"dependencies": {
+		"form-data": "^4.0.0",
+		"node-fetch-2": "npm:node-fetch@^2.6.6",
+		"node-fetch-3": "npm:node-fetch@^3.1.0"
+	}
+}
