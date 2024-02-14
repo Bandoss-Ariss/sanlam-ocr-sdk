@@ -57,7 +57,20 @@ app.post("/uploadFile", upload.fields([{ name: 'file', maxCount: 1 }, { name: 'v
 		console.log(response);
 		res.json({userInfo:response});
 	}
-	
+	else if (req.body.operation === "carte_grise"){
+		let response = await ocr.extraireInfosDocument("carte_grise", req.files.file[0].path, req.files.verso[0].path);
+		console.log(response);
+		res.json({userInfo:response});
+	}
+	else if (req.body.operation === "old_cin"){
+		let response = await ocr.extraireInfosDocument("old_cin", req.files.file[0].path, req.files.verso[0].path);
+		console.log(response);
+		res.json({userInfo:response});
+	} else if (req.body.operation === "passeport"){
+		let response = await ocr.extraireInfosDocument("passeport", req.files.file[0].path, req.files.verso[0].path);
+		console.log(response);
+		res.json({userInfo:response});
+	}
 });
 
 // Server port

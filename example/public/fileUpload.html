@@ -428,7 +428,10 @@ body {
                <select class="form-control" name="operation" id="operation">
 				<option value="">Sélectionner le type du document</option>
 				<option value="cin">Carte Nationale d'identité</option>
+        <option value="old_cin">Ancienne carte nationale</option>
 				<option value="permis">Permis de conduire</option>
+        <option value="carte_grise">Carte grise</option>
+        <option value="passeport">Passeport</option>
 			   </select>
 			   <input type="submit" name="next" class="next action-button" value="Scanner"/>	
 			   <img src="../public/sanlam.png" width="80%" id="logo" style="margin: 2% 10%;">
@@ -475,6 +478,63 @@ body {
 			
 				<img src="../public/sanlam.png" width="80%" id="logo" style="margin: 2% 10%;">
             </fieldset>
+            
+            <fieldset>
+              <div class="pl" style="margin-left:30%" id="loader-second">
+                <div class="pl__dot"></div>
+                <div class="pl__dot"></div>
+                <div class="pl__dot"></div>
+                <div class="pl__dot"></div>
+                <div class="pl__dot"></div>
+                <div class="pl__dot"></div>
+                <div class="pl__dot"></div>
+                <div class="pl__dot"></div>
+                <div class="pl__dot"></div>
+                <div class="pl__dot"></div>
+                <div class="pl__dot"></div>
+                <div class="pl__dot"></div>
+                <div class="pl__text">Extraction des informations…</div>
+              </div>
+                      <h2 class="fs-title">Résultat Carte grise</h2>
+                      <h3 class="fs-subtitle">Les informations extraites</h3>
+              <label>Numéro d'immatriculation</label>
+                      <input type="text" name="numero" id="immatriculation" placeholder=""/>
+              <label>Numéro de la carte grise</label>
+                      <input type="text" name="nom" placeholder="" id="numero_carte_grise"/>
+              <label>Date de la 1ère mise en circulation</label>
+                      <input type="text" name="prenoms" placeholder="" id="mise_en_circulation"/>
+              <label>Identité du propriétaire</label>
+                      <input type="text" name="naissance" placeholder="" id="identite_du_proprietaire"/>
+              <label>Marque</label>
+                      <input type="text" name="date_naissance" placeholder="" id="marque"/>
+              <label>Type commercial</label>
+                      <input type="text" name="date_delivrance" placeholder="" id="type_commercial"/>
+              <label>Couleur</label>
+                      <input type="text" name="profession" placeholder="" id="couleur"/>
+              <label>Carosserie</label>
+                      <input type="text" name="sexe" placeholder="" id="carrosserie"/>
+              <label>Energie</label>
+                      <input type="text" name="taille" placeholder="" id="energie"/>
+              <label>Genre</label>
+                      <input type="text" name="sexe" placeholder="" id="genre"/>
+              <label>Usage du véhicule</label>
+                      <input type="text" name="sexe" placeholder="" id="usage_du_vehicule"/>
+              <label>Nombre d'essieu</label>
+                      <input type="text" name="sexe" placeholder="" id="nombre_essieu"/>
+              <label>Places assises</label>
+                      <input type="text" name="sexe" placeholder="" id="place_assises"/>
+              <label>Puissance Fiscale(CV)</label>
+                      <input type="text" name="sexe" placeholder="" id="puissance_fiscale"/>
+              <label>Cylindrée(CC)</label>    
+              <input type="text" name="sexe" placeholder="" id="cylindree"/>
+              <label>Numéro du VIN/Chassis</label>    
+              <input type="text" name="sexe" placeholder="" id="numero_chassis"/>
+              <label>Type technique</label>    
+              <input type="text" name="sexe" placeholder="" id="type_technique"/>
+
+
+              <img src="../public/sanlam.png" width="80%" id="logo" style="margin: 2% 10%;">
+                  </fieldset>
         </form>
 	
     </div>
@@ -494,7 +554,12 @@ $(".next").click(function(){
   animating = true;
   
   current_fs = $(this).parent();
-  next_fs = $(this).parent().next();
+  let operation = $('#operation').val();
+  if (operation == "carte_grise") {
+    next_fs = $(this).parent().next().next();
+  } else {
+    next_fs = $(this).parent().next();
+  }
   
   //activate next step on progressbar using the index of next_fs
   $("#progressbar li").eq($("fieldset").index(next_fs)).addClass("active");
@@ -583,7 +648,51 @@ $(".previous").click(function(){
 			type: 'POST',
 			success: function ( data ) {
 				console.log(data);
-				$('#loader').css('display','none');
+        let operation = $('#operation').val();
+        if (operation == "carte_grise") {
+          $('#loader-second').css('display','none');
+          let carInfo = data.userInfo;
+          if (carInfo.immatriculation) {
+            $('#immatriculation').val(carInfo.immatriculation);
+          }
+          if (carInfo.numero_carte_grise) {
+            $('#numero_carte_grise').val(carInfo.numero_carte_grise);
+          }
+          if (carInfo.mise_en_circulation) {
+            $('#mise_en_circulation').val(carInfo.mise_en_circulation);
+          }
+          if (carInfo.identite_du_proprietaire) {
+            $('#identite_du_proprietaire').val(carInfo.identite_du_proprietaire);
+          } if (carInfo.marque) {
+            $('#marque').val(carInfo.marque);
+          } if (carInfo.type_commercial) {
+            $('#type_commercial').val(carInfo.type_commercial);
+          } if (carInfo.couleur) {
+            $('#couleur').val(carInfo.couleur);
+          } if (carInfo.carrosserie) {
+            $('#carrosserie').val(carInfo.carrosserie);
+          } if (carInfo.genre) {
+            $('#genre').val(carInfo.genre);
+          } if (carInfo.usage_du_vehicule) {
+            $('#usage_du_vehicule').val(carInfo.usage_du_vehicule);
+          } if (carInfo.nombre_essieu) {
+            $('#nombre_essieu').val(carInfo.nombre_essieu);
+          } if (carInfo.usage_du_vehicule) {
+            $('#usage_du_vehicule').val(carInfo.usage_du_vehicule);
+          }  if (carInfo.place_assises) {
+            $('#place_assises').val(carInfo.place_assises);
+          } if (carInfo.puissance_fiscale) {
+            $('#puissance_fiscale').val(carInfo.puissance_fiscale);
+          } if (carInfo.cylindree) {
+            $('#cylindree').val(carInfo.cylindree);
+          } if (carInfo.type_technique) {
+            $('#type_technique').val(carInfo.type_technique);
+          } if (carInfo.numero_chassis) {
+            $('#numero_chassis').val(carInfo.numero_chassis);
+          }
+        } else {
+          $('#loader').css('display','none');
+          
 				let userInfo = data.userInfo;
 				if (userInfo.numero_permis) {
 					$('#numero').val(userInfo.numero_permis);
@@ -614,6 +723,7 @@ $(".previous").click(function(){
 				if(userInfo.taille) {
 					$('#taille').val(userInfo.taille);
 				}
+        }
 			
 			}
 		});
