@@ -55,7 +55,14 @@ class SanlamOcrSDK {
 			return await this.extractUsingCINFile(rectoPath, versoPath);
 		} else if (type == "permis") {
 			return await this.extractUsingPermisFile(rectoPath);
-		} else {
+		} else if (type == "carte_grise") {
+			return await this.extractUsingCarteGriseFile(rectoPath, versoPath);
+		} else if (type == "old_cin") {
+			return await this.extractUsingOldCinFile(rectoPath, versoPath);
+		} else if (type == "passeport") {
+			return await this.extractUsingPasseportFile(rectoPath, versoPath);
+		}
+		else {
 			throw new Error("Type de document non reconnu");
 		}
 	}
@@ -175,6 +182,69 @@ class SanlamOcrSDK {
 		
 	}
 
+	async extractUsingPasseportFile(filePath, fileVersoPath) {
+
+		let data = await this.predictUsingFile(filePath);
+		data = data.text.toString();
+		
+		let dataVerso = await this.predictUsingFile(fileVersoPath);
+		dataVerso = dataVerso.text.toString();
+		console.log(dataVerso);
+		data += dataVerso;
+		let userInfo = {};
+		const lines = data.split('\r\n');
+		
+		for (let i = 0; i < lines.length; i += 1) {
+			const label = lines[i].trim();
+			
+			if (label.indexOf('Prénoms') !== -1) {
+			  const value = lines[i + 1].trim();
+			  userInfo.prenom = value;
+			} else if (label.indexOf('Nom') !== -1) {
+				const value = lines[i + 1].trim();
+			  userInfo.nom = value;
+			} else if (label.indexOf('Sexe') !== -1) {
+				const value = lines[i + 1].trim();
+			  userInfo.sexe = value;
+			  userInfo.cin = lines[i-1].trim();
+			}
+			
+			else if (label.indexOf('Date de naissance') !== -1) {
+			let values = label.split('/');
+			  userInfo.naissance = values[2];
+			} else if (label.indexOf('(CIV)') !== -1) {
+				userInfo.lieu_naissance = label;
+			} else if (
+				label.trim().indexOf("Date d'expiration") !== -1
+				&& label.trim() != "Date d'expiration"	
+			) {
+				
+				let values = label.split('/');
+				console.log(values);
+				userInfo.expiration = values[2]
+			}
+			
+			else if (label.substring(0,2) == 'n°') {
+				userInfo.cin = label;
+			} else if (label.trim().indexOf('Profession') !== -1) {
+				
+				let values = label.split(':');
+				userInfo.profession = values[1];
+
+			} else if (label.trim().indexOf("Date de délivrance") !== -1) {
+				let values = label.split('/');
+				userInfo.date_delivrance = values[2];
+
+			} else if (label.substring(0,2) == 'a:') {
+				let values = label.split(':');
+				userInfo.lieu_delivrance = values[1];
+			} 
+			
+		  }
+		  return userInfo;
+		
+	}
+
 	async extractUsingPermisFile(filePath) {
 
 		let data = await this.predictUsingFile(filePath);
@@ -208,7 +278,152 @@ class SanlamOcrSDK {
 		}
 		  return userInfo;
 		
-	}	
+	}
+	
+	
+	async extractUsingOldCinFile(filePath, fileVersoPath) {
+
+		let data = await this.predictUsingFile(filePath);
+		data = data.text.toString();
+		
+		let dataVerso = await this.predictUsingFile(fileVersoPath);
+		dataVerso = dataVerso.text.toString();
+		console.log(dataVerso);
+		data += dataVerso;
+		let userInfo = {};
+		const lines = data.split('\r\n');
+		
+		for (let i = 0; i < lines.length; i += 1) {
+			const label = lines[i].trim();
+			
+			if (label.indexOf('Prénoms') !== -1) {
+			  userInfo.prenom = lines[i-1].trim();
+			} else if (label.indexOf('Nom') !== -1) {
+				let values =  label.split(' ');
+			  	userInfo.nom = values[0];
+			} else if (label.indexOf('Date de Naissance') != -1) {
+			  let values = label.split(' ');
+			  userInfo.naissance = values[0];
+			} else if (label.indexOf('taille') != -1) {
+				let values = label.split(' ');
+				userInfo.taille = values[0];
+			} else if ((label.indexOf('Sexe') != -1)) {
+				userInfo.sexe = lines[i-1].trim();
+			}	
+			else if (label.indexOf('(CIV)') !== -1) {
+				userInfo.lieu_naissance = label;
+			} else if (
+				label.trim().indexOf("Valide jusqu'au") !== -1
+			) {
+				//Date d'expiration sur la même ligne
+				let values = label.split(' ');
+				userInfo.expiration = values[2]
+				
+			} else if (label.trim().indexOf("Date d'expiration") !== -1
+			&& label.trim() == "Date d'expiration") {
+				//Date d'expiration sur la ligne suivante
+				const value = lines[i + 1].trim();
+				userInfo.expiration = value;
+			}
+			
+			else if (label.indexOf('Immatriculation') !== -1) {
+				let values = label.split(':');
+				userInfo.cin = values[1];
+			} else if (label.trim().indexOf('Profession') !== -1) {
+				
+				let values = label.split(':');
+				userInfo.profession = values[1];
+
+			} else if (label.trim().indexOf("Etablie le") !== -1) {
+				let values = label.split(':');
+				userInfo.date_delivrance = values[1];
+
+			} else if (label.substring(0,1) == 'A') {
+				let values = label.split(' ');
+				userInfo.lieu_delivrance = values[1];
+			} 
+			
+		  }
+		  return userInfo;
+		
+	}
+
+	async extractUsingCarteGriseFile(filePath, fileVersoPath) {
+
+		let data = await this.predictUsingFile(filePath);
+		data = data.text;
+		
+		let dataVerso = await this.predictUsingFile(fileVersoPath);
+		dataVerso = dataVerso.text;
+		data += dataVerso;
+		console.log(data);
+		let userInfo = {};
+		let carInfo = {};
+
+		const lines = data.split('\r\n');
+		
+		for (let i = 0; i < lines.length; i += 1) {
+			const label = lines[i].trim();
+			
+			if (label.slice(-11) === 'triculation') {
+			  const value = lines[i + 1].trim();
+			  carInfo.immatriculation = value;
+			} else if (label.slice(-11) === 'Carte Grise') {
+				const value = lines[i + 1].trim();
+			  	carInfo.numero_carte_grise = value;
+			} else if (label.slice(-20).trim() == 'mise en circulation') {
+			  carInfo.mise_en_circulation = lines[i + 1].trim();
+			} else if (label.indexOf('du propriétaire') != -1) {
+				let values = label.split(' ');
+				carInfo.identite_du_proprietaire = values[4]
+			} else if (label.indexOf('Marque') !== -1) {
+				let values = label.split(' ');
+				carInfo.marque = values[1];
+			} else if (label.indexOf('Type commercial') !== -1) {
+				let values = label.split(' ');
+				carInfo.type_commercial = values[2];
+			} else if (label.indexOf('Couleur') !== -1) {
+				let values = label.split(' ');
+				carInfo.couleur = values[1];
+				if (values[2] == "Carrosserie") {
+					//récupéré sur la prochaine ligne
+					let values = lines[i+1].trim();
+					let energie_index = values.lastIndexOf("Energie");
+					let carosserie_values = values.slice(0, energie_index);
+					carInfo.carrosserie = carosserie_values.toString();
+				} else {
+					let values = lines[i+1].trim();
+					if (values[0] == "Carosserie") {
+						carInfo.carrosserie = values[1];
+					}
+					
+				}
+			}	
+			else if (label.indexOf('Genre') !== -1) {
+				let values = label.split(':');
+				carInfo.genre = values[1];
+			}
+			else if (label.indexOf('Usage') !== -1) {
+				carInfo.usage_du_vehicule = lines[i+2].trim();
+				carInfo.nombre_essieu = lines[i+3].trim();
+			}
+			else if (label.indexOf('Puissance') !== -1) {
+				carInfo.puissance_fiscale = lines[i+2].trim();
+				carInfo.place_assises = lines[i+1].trim();
+				carInfo.date_edition = lines[i+3].trim();
+			} else if (label.indexOf('CU (Kg)') !== -1) {
+				carInfo.cylindree = lines[i-1].trim();
+			} else if (label.indexOf('Chassis') !== -1) {
+				carInfo.numero_chassis = lines[i+1].trim();
+			} else if (label.indexOf('Type technique') !== -1) {
+				let values = label.trim(' ').split(" ");
+				carInfo.type_technique = values[2];
+			}
+		  }
+		  console.log(carInfo);
+		  return carInfo;
+		
+	}
 
 	async extractFromUrl(url, isAsync = false) {
 		if (!urlArray)
