@@ -75,7 +75,7 @@ body {
 }
 
 /*buttons*/
-#msform .action-button {
+#msform .action-button, #msform .validate {
     width: 100px;
     background: #2596be;
     font-weight: bold;
@@ -419,13 +419,14 @@ body {
             <!-- fieldsets -->
 
             <fieldset>
-                <h2 class="fs-title">Scan du document</h2>
+                <h2 class="fs-title">Extraction automatique des informations</h2>
                 <h3 class="fs-subtitle">Veuillez prendre une photo ou sélectionner le recto et le verso du document à scanner</h3>
-				
-                <input type="file" name="file" id="file" placeholder="Document" accept="image/*" capture="user"/></br>
-
-                <input type="file" name="verso" id="verso" placeholder="Document" accept="image/*" capture="user"/></br>
-               <select class="form-control" name="operation" id="operation">
+                <label>Recto du document</label>
+                <input type="file" name="file" id="file" placeholder="Document"  accept="image/*" capture="camera"/></br>
+                <label>Verso du document</label>
+                <input type="file" name="verso" id="verso" placeholder="Document"  accept="image/*" capture="camera"/></br>
+                <label>Type du document</label>
+                <select class="form-control" name="operation" id="operation">
 				<option value="">Sélectionner le type du document</option>
 				<option value="cin">Carte Nationale d'identité</option>
         <option value="old_cin">Ancienne carte nationale</option>
@@ -474,8 +475,11 @@ body {
                 <input type="text" name="sexe" placeholder="" id="sexe"/>
 				<label>Taille</label>
                 <input type="text" name="taille" placeholder="" id="taille"/>
+        <input type="hidden" name="notify_url" placeholder="" id="notify_url"/>
+        <input type="hidden" name="return_url" placeholder="" id="return_url"/>
+
                 <input type="button" name="previous" class="previous action-button-previous" value="Reprendre"/>
-			
+                <input type="button" id='validate' class="validate" value="Valider"/>	
 				<img src="../public/sanlam.png" width="80%" id="logo" style="margin: 2% 10%;">
             </fieldset>
             
@@ -540,6 +544,7 @@ body {
     </div>
 </div>
 <!-- /.MultiStep Form -->
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.3/jquery.easing.min.js'></script>
@@ -694,6 +699,10 @@ $(".previous").click(function(){
           $('#loader').css('display','none');
           
 				let userInfo = data.userInfo;
+        console.log("Logging here");
+        console.log(userInfo.notify_url);
+        $('#notify_url').val(userInfo.notify_url);
+        $('#return_url').val(userInfo.return_url);
 				if (userInfo.numero_permis) {
 					$('#numero').val(userInfo.numero_permis);
 				}
@@ -728,8 +737,57 @@ $(".previous").click(function(){
 			}
 		});
 		  
-
-
-
 	  });
+    $('#validate').click(function () {
+      let operation = $('#operation').val();
+      if (operation == "carte_grise") {
+
+      } else {
+        let userInfo = {};
+        if (operation == "permis") {
+          userInfo.numero_permis =	$('#numero').val();
+        } else {
+          userInfo.cin = $('#numero').val();
+        }
+        userInfo.nom = $('#nom').val();
+        userInfo.prenom = $('#prenom').val();
+        userInfo.naissance = $('#date_naissance').val();
+        userInfo.lieu_naissance = $('#lieu_naissance').val();
+        userInfo.profession = $('#profession').val();
+        userInfo.lieu_delivrance = 	$('#lieu_delivrance').val();
+        userInfo.date_delivrance = $('#date_delivrance').val();
+        userInfo.sexe = 	$('#sexe').val();
+        userInfo.taille = $('#taille').val();
+
+        let notify_url = $("#notify_url").val();
+        let return_url = $("#return_url").val();
+
+        const form = document.createElement("form");
+        for (const key in userInfo) {
+          const element = document.createElement("input");
+          element.type = "text";
+          element.name = key;
+          element.value = userInfo[key];
+          form.appendChild(element);
+        }
+        const submitButton = document.createElement("button");
+        submitButton.type = "submit";
+        submitButton.textContent = "Envoyer";
+        form.appendChild(submitButton);
+        console.log(notify_url);
+        console.log(return_url);        
+          const formData = new FormData(form);
+          console.log(formData);
+          // Send POST request with Axios
+          axios.post(notify_url, formData)
+            .then((response) => {
+              window.location.href = return_url;
+            })
+            .catch((error) => {
+              alert("Erreur avec l'url de notification");
+            });
+   
+      }
+    
+    });
 </script>

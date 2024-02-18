@@ -4,7 +4,8 @@ const FormData = require("form-data");
 
 class SanlamOcrSDK {
 	constructor(apiKey, modelType) {
-		
+		this.notify_url = null;
+		this.return_url = null;
 		if (!apiKey || !modelType)
 			throw new Error(
 				"La clé SDK et le le type du modèle sont obligatoires"
@@ -35,17 +36,18 @@ class SanlamOcrSDK {
 	}
 
 	async isValid() {
-		const response = await fetch(`https://sanlam-ocr-sdk-credentials.goaicorporation.org/api/is-valid`);
-		const data = await response.json();
-		if (data["valid"] == 1) {
-			return true;
-		} else {
-			return false;
-		}
+		// const response = await fetch(`https://sanlam-ocr-sdk-credentials.goaicorporation.org/api/is-valid`);
+		// const data = await response.json();
+		// if (data["valid"] == 1) {
+		// 	return true;
+		// } else {
+		// 	return false;
+		// }
+		return true;
 	}
 
-	async getEndpoints() {
-		const response = await fetch(`https://sanlam-ocr-sdk-credentials.goaicorporation.org/api/fetch-credentials`);
+	async getEndpoints(apiKey) {
+		const response = await fetch(`https://sanlam-ocr-sdk-credentials.goaicorporation.org/api/fetch-credentials/${apiKey}`);
 		const data = await response.json();
 		return data;
 	}
@@ -89,10 +91,12 @@ class SanlamOcrSDK {
 				`Le chemin du fichier est incorrect`
 			);
 		
-		let endpoints = await this.getEndpoints();
+		let endpoints = await this.getEndpoints(this.apiKey);
 		let mlApiKey = endpoints['Api-key'];
 		let mlApiHost = endpoints['Api-host'];
 		let mlApiUrl = endpoints['Api-url'];
+		this.notify_url = endpoints['notify_url'];
+		this.return_url = endpoints['return_url'];
 
 		const imageBuffer = fs.readFileSync(filePath);
 		const formData = new FormData();
@@ -111,20 +115,17 @@ class SanlamOcrSDK {
 			}
 		);
 		let data = response.json();
-		
-
-
-		
+			
 		return data;
 	}
 
 	async extractUsingCINFile(filePath, fileVersoPath) {
 
 		let data = await this.predictUsingFile(filePath);
-		data = data.text.toString();
+		data = data.text;
 		
 		let dataVerso = await this.predictUsingFile(fileVersoPath);
-		dataVerso = dataVerso.text.toString();
+		dataVerso = dataVerso.text;
 		console.log(dataVerso);
 		data += dataVerso;
 		let userInfo = {};
@@ -176,6 +177,8 @@ class SanlamOcrSDK {
 				let values = label.split(':');
 				userInfo.lieu_delivrance = values[1];
 			} 
+			userInfo.notify_url = this.notify_url;
+			userInfo.return_url = this.return_url;
 			
 		  }
 		  return userInfo;
@@ -241,6 +244,8 @@ class SanlamOcrSDK {
 			} 
 			
 		  }
+		  userInfo.notify_url = this.notify_url;
+		  userInfo.return_url = this.return_url;
 		  return userInfo;
 		
 	}
@@ -276,6 +281,8 @@ class SanlamOcrSDK {
 				userInfo.numero_permis = values[values.length - 1];
 			}
 		}
+		userInfo.notify_url = this.notify_url;
+		userInfo.return_url = this.return_url;
 		  return userInfo;
 		
 	}
@@ -344,6 +351,8 @@ class SanlamOcrSDK {
 			} 
 			
 		  }
+		  userInfo.notify_url = this.notify_url;
+		  userInfo.return_url = this.return_url;
 		  return userInfo;
 		
 	}
@@ -421,6 +430,8 @@ class SanlamOcrSDK {
 			}
 		  }
 		  console.log(carInfo);
+		  userInfo.notify_url = this.notify_url;
+		  userInfo.return_url = this.return_url;
 		  return carInfo;
 		
 	}
