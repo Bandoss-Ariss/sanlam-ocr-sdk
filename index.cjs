@@ -291,10 +291,10 @@ class SanlamOcrSDK {
 	async extractUsingOldCinFile(filePath, fileVersoPath) {
 
 		let data = await this.predictUsingFile(filePath);
-		data = data.text.toString();
-		
+		data = data.text;
 		let dataVerso = await this.predictUsingFile(fileVersoPath);
-		dataVerso = dataVerso.text.toString();
+		dataVerso = dataVerso.text;
+		console.log(data);
 		console.log(dataVerso);
 		data += dataVerso;
 		let userInfo = {};
@@ -304,18 +304,40 @@ class SanlamOcrSDK {
 			const label = lines[i].trim();
 			
 			if (label.indexOf('Prénoms') !== -1) {
-			  userInfo.prenom = lines[i-1].trim();
-			} else if (label.indexOf('Nom') !== -1) {
+			if (label == 'Prénoms') {
+				userInfo.prenom = lines[i-1].trim();
+			} else {
 				let values =  label.split(' ');
-			  	userInfo.nom = values[0];
+			  	userInfo.prenom = values[0];
+			}
+			} else if (label.indexOf('Nom') !== -1) {
+				if (label == 'Nom') {
+					userInfo.nom = lines[i-1].trim();
+				} else {
+					let values =  label.split(' ');
+					  userInfo.nom = values[0];
+				}
 			} else if (label.indexOf('Date de Naissance') != -1) {
-			  let values = label.split(' ');
-			  userInfo.naissance = values[0];
-			} else if (label.indexOf('taille') != -1) {
-				let values = label.split(' ');
-				userInfo.taille = values[0];
+				if (label == 'Date de Naissance') {
+					userInfo.naissance = lines[i-1].trim();
+				} else {
+					let values =  label.split(' ');
+					userInfo.naissance = values[0];
+				}
+			} else if (label.indexOf('Taille') != -1) {
+				if (label == 'Taille') {
+					userInfo.taille = lines[i-1].trim();
+				} else {
+					let values =  label.split(' ');
+					userInfo.taille = values[0];
+				}
 			} else if ((label.indexOf('Sexe') != -1)) {
-				userInfo.sexe = lines[i-1].trim();
+				if (label == 'Sexe') {
+					userInfo.sexe = lines[i-1].trim();
+				} else {
+					let values =  label.split(' ');
+					  userInfo.sexe = values[0];
+				}
 			}	
 			else if (label.indexOf('(CIV)') !== -1) {
 				userInfo.lieu_naissance = label;
@@ -429,9 +451,9 @@ class SanlamOcrSDK {
 				carInfo.type_technique = values[2];
 			}
 		  }
-		  console.log(carInfo);
-		  userInfo.notify_url = this.notify_url;
-		  userInfo.return_url = this.return_url;
+		  carInfo.energie = "Essence";
+		  carInfo.notify_url = this.notify_url;
+		  carInfo.return_url = this.return_url;
 		  return carInfo;
 		
 	}

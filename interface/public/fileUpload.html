@@ -75,7 +75,7 @@ body {
 }
 
 /*buttons*/
-#msform .action-button, #msform .validate {
+#msform .action-button, #msform .validate, #msform .validate2 {
     width: 100px;
     background: #2596be;
     font-weight: bold;
@@ -415,6 +415,7 @@ body {
             <ul id="progressbar">
                 <li class="active">Scan du document</li>
                 <li>Résultat</li>
+                <li>Terminé</li>
             </ul>
             <!-- fieldsets -->
 
@@ -422,9 +423,9 @@ body {
                 <h2 class="fs-title">Extraction automatique des informations</h2>
                 <h3 class="fs-subtitle">Veuillez prendre une photo ou sélectionner le recto et le verso du document à scanner</h3>
                 <label>Recto du document</label>
-                <input type="file" name="file" id="file" placeholder="Document"  accept="image/*" capture="camera"/></br>
+                <input type="file" name="file" id="file" placeholder="Document" accept="image/*" capture="camera" required/></br>
                 <label>Verso du document</label>
-                <input type="file" name="verso" id="verso" placeholder="Document"  accept="image/*" capture="camera"/></br>
+                <input type="file" name="verso" id="verso" placeholder="Document"  accept="image/*" capture="camera" required/></br>
                 <label>Type du document</label>
                 <select class="form-control" name="operation" id="operation">
 				<option value="">Sélectionner le type du document</option>
@@ -518,7 +519,7 @@ body {
               <label>Carosserie</label>
                       <input type="text" name="sexe" placeholder="" id="carrosserie"/>
               <label>Energie</label>
-                      <input type="text" name="taille" placeholder="" id="energie"/>
+                      <input type="text" name="energie" placeholder="" id="energie"/>
               <label>Genre</label>
                       <input type="text" name="sexe" placeholder="" id="genre"/>
               <label>Usage du véhicule</label>
@@ -535,9 +536,13 @@ body {
               <input type="text" name="sexe" placeholder="" id="numero_chassis"/>
               <label>Type technique</label>    
               <input type="text" name="sexe" placeholder="" id="type_technique"/>
-
-
+              
+              <input type="button" name="previous" class="previous action-button-previous" value="Reprendre"/>
+              <input type="button" id='validate2' class="validate2" value="Valider"/>	
               <img src="../public/sanlam.png" width="80%" id="logo" style="margin: 2% 10%;">
+              </fieldset>
+                  <fieldset>
+                    <h2 class="fs-title">Informations envoyées.Vous pouvez maintenant fermer la popup</h2>
                   </fieldset>
         </form>
 	
@@ -597,14 +602,21 @@ $(".next").click(function(){
   });
 });
 
+
+
 $(".previous").click(function(){
 	$('#loader').css('display','flex');
 	$("input[type=text]").val('');
   if(animating) return false;
   animating = true;
+  let operation = $('#operation').val();
+  if (operation == "carte_grise") {
+    previous_fs = $(this).parent().prev().prev();
+  } else {
+    previous_fs = $(this).parent().prev();
+  }
   
   current_fs = $(this).parent();
-  previous_fs = $(this).parent().prev();
   
   //de-activate current step on progressbar
   $("#progressbar li").eq($("fieldset").index(current_fs)).removeClass("active");
@@ -657,6 +669,7 @@ $(".previous").click(function(){
         if (operation == "carte_grise") {
           $('#loader-second').css('display','none');
           let carInfo = data.userInfo;
+          $('#notify_url').val(carInfo.notify_url);
           if (carInfo.immatriculation) {
             $('#immatriculation').val(carInfo.immatriculation);
           }
@@ -699,8 +712,6 @@ $(".previous").click(function(){
           $('#loader').css('display','none');
           
 				let userInfo = data.userInfo;
-        console.log("Logging here");
-        console.log(userInfo.notify_url);
         $('#notify_url').val(userInfo.notify_url);
         $('#return_url').val(userInfo.return_url);
 				if (userInfo.numero_permis) {
@@ -738,10 +749,93 @@ $(".previous").click(function(){
 		});
 		  
 	  });
+    $('#validate2').click(function () {
+      let userInfo = {};
+      userInfo.immatriculation =  $('#immatriculation').val();
+      userInfo.energie = $('#energie').val();
+      userInfo.carrosserie = $('#carrosserie').val();
+      userInfo.couleur = $('#couleur').val();
+      userInfo.cylindree = $('#cylindree').val();
+      userInfo.date_edition = $('#date_edition').val();
+      userInfo.genre = $('#genre').val();
+      userInfo.identite_du_proprietaire =  $('#identite_du_proprietaire').val();
+      userInfo.marque =  $('#marque').val();
+      userInfo.mise_en_circulation = $('#mise_en_circulation').val();
+      userInfo.nombre_essieu = $('#nombre_essieu').val();
+      userInfo.numero_carte_grise = $('#numero_carte_grise').val();
+      userInfo.numero_chassis = $('#numero_chassis').val();
+      userInfo.place_assises = $('#place_assises').val();
+      userInfo.puissance_fiscale = $('#puissance_fiscale').val();
+      userInfo.type_commercial = $('#type_commercial').val();
+      userInfo.type_technique = $('#type_technique').val();
+      userInfo.usage_du_vehicule = $('#usage_du_vehicule').val();
+      let notify_url = $("#notify_url").val();
+      console.log(notify_url);
+      //Preparation et envoie des données
+      const form = document.createElement("form");
+      for (const key in userInfo) {
+        const element = document.createElement("input");
+        element.type = "text";
+        element.name = key;
+        element.value = userInfo[key];
+        form.appendChild(element);
+      }
+      const submitButton = document.createElement("button");
+      submitButton.type = "submit";
+      submitButton.textContent = "Envoyer";
+      form.appendChild(submitButton);    
+      const formData = new FormData(form);
+      console.log(formData);
+
+      axios.post(notify_url, formData)
+      .then((response) => {
+        current_fs = $(this).parent();
+
+next_fs = $(this).parent().next();
+
+console.log(next_fs);
+
+//activate next step on progressbar using the index of next_fs
+$("#progressbar li").eq($("fieldset").index(next_fs)).addClass("active");
+
+//show the next fieldset
+next_fs.show(); 
+current_fs.animate({opacity: 0}, {
+step: function(now, mx) {
+//as the opacity of current_fs reduces to 0 - stored in "now"
+//1. scale current_fs down to 80%
+scale = 1 - (1 - now) * 0.2;
+//2. bring next_fs from the right(50%)
+left = (now * 50)+"%";
+//3. increase opacity of next_fs to 1 as it moves in
+opacity = 1 - now;
+current_fs.css({
+  'transform': 'scale('+scale+')',
+  'position': 'absolute'
+});
+next_fs.css({'left': left, 'opacity': opacity});
+}, 
+duration: 800, 
+complete: function(){
+current_fs.hide();
+animating = false;
+}, 
+//this comes from the custom easing plugin
+easing: 'easeInOutBack'
+});
+      })
+      .catch((error) => {
+        alert("Erreur avec l'url de notification");
+      });
+    });
     $('#validate').click(function () {
       let operation = $('#operation').val();
       if (operation == "carte_grise") {
+      
 
+        
+      
+      
       } else {
         let userInfo = {};
         if (operation == "permis") {
@@ -781,7 +875,40 @@ $(".previous").click(function(){
           // Send POST request with Axios
           axios.post(notify_url, formData)
             .then((response) => {
-              window.location.href = return_url;
+              current_fs = $(this).parent();
+
+  next_fs = $(this).parent().next().next();
+
+  console.log(next_fs);
+  
+  //activate next step on progressbar using the index of next_fs
+  $("#progressbar li").eq($("fieldset").index(next_fs)).addClass("active");
+  
+  //show the next fieldset
+  next_fs.show(); 
+  current_fs.animate({opacity: 0}, {
+    step: function(now, mx) {
+      //as the opacity of current_fs reduces to 0 - stored in "now"
+      //1. scale current_fs down to 80%
+      scale = 1 - (1 - now) * 0.2;
+      //2. bring next_fs from the right(50%)
+      left = (now * 50)+"%";
+      //3. increase opacity of next_fs to 1 as it moves in
+      opacity = 1 - now;
+      current_fs.css({
+        'transform': 'scale('+scale+')',
+        'position': 'absolute'
+      });
+      next_fs.css({'left': left, 'opacity': opacity});
+    }, 
+    duration: 800, 
+    complete: function(){
+      current_fs.hide();
+      animating = false;
+    }, 
+    //this comes from the custom easing plugin
+    easing: 'easeInOutBack'
+  });
             })
             .catch((error) => {
               alert("Erreur avec l'url de notification");
