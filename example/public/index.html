@@ -85,8 +85,7 @@
 
       var data = JSON.stringify({
         "cle_sdk":"L80rxMo5d9Cfsx2KnJQj275V9uCc8Yx0",
-        "type": "RNN",
-        "notify_url": "https://sanlam-ocr-sdk-credentials.goaicorporation.org/api/store-data"
+        "type": "RNN"
 
     });
     var config = {
@@ -106,7 +105,20 @@
       .catch(function (error) {
         console.log(error);
       });
-    })
+    });
+ 
+    window.addEventListener('message', function(event) {
+        if (event.origin == "http://localhost:5000") {
+          let response = event.data;
+          console.log(response);
+        }   
+    });
+
+    $(document).on("scanEnd", "#scan-end", function(e){
+      //Scan terminé et popup fermé
+      //Faire action
+      console.log("Popup fermée");
+     });
   });
 </script>
 </html>

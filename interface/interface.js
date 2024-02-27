@@ -65,10 +65,30 @@ class SDKInterface {
       closeButtonFooter.type = "button";
       closeButtonFooter.classList.add("btn", "btn-default");
       closeButtonFooter.setAttribute("data-dismiss", "modal");
+      closeButtonFooter.setAttribute("id", "scan-end");
       closeButtonFooter.textContent = "Fermer";
+
+     
   
       // Append elements to their parent nodes
       modalHeader.appendChild(closeButton);
+
+      //Create special event on scan end
+      const scanEnd = new CustomEvent("scanEnd", {
+        detail: {},
+        bubbles: true,
+        cancelable: true,
+        composed: false,
+      });
+
+
+       //Add scan-end event
+       document.addEventListener("click", function(e){
+        const target = e.target.closest("#scan-end"); // Or any other selector.
+        if(target) {
+          document.querySelector("#scan-end").dispatchEvent(scanEnd);
+        }
+      });
       modalHeader.appendChild(modalTitle);
       modalContent.appendChild(modalHeader);
       modalBody.appendChild(iframe);

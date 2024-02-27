@@ -542,7 +542,7 @@ body {
               <img src="../public/sanlam.png" width="80%" id="logo" style="margin: 2% 10%;">
               </fieldset>
                   <fieldset>
-                    <h2 class="fs-title">Informations envoyées.Vous pouvez maintenant fermer la popup</h2>
+                    <h2 class="fs-title">Informations envoyées.Vous pouvez maintenant fermer maintenant en cliquant sur le bouton Fermer.</h2>
                   </fieldset>
         </form>
 	
@@ -789,9 +789,14 @@ $(".previous").click(function(){
       form.appendChild(submitButton);    
       const formData = new FormData(form);
       console.log(formData);
+      //Store into variable
+      const dataObject = {};
 
-      axios.post(notify_url, formData)
-      .then((response) => {
+      for (const [key, value] of formData.entries()) {
+          dataObject[key] = value;
+      }
+      window.parent.postMessage(dataObject, "*");
+    
         current_fs = $(this).parent();
 
 next_fs = $(this).parent().next();
@@ -826,18 +831,11 @@ animating = false;
 //this comes from the custom easing plugin
 easing: 'easeInOutBack'
 });
-      })
-      .catch((error) => {
-        alert("Erreur avec l'url de notification");
       });
-    });
     $('#validate').click(function () {
       let operation = $('#operation').val();
       if (operation == "carte_grise") {
-      
-
-        
-      
+  
       
       } else {
         let userInfo = {};
@@ -873,11 +871,16 @@ easing: 'easeInOutBack'
         form.appendChild(submitButton);
         console.log(notify_url);
         console.log(return_url);        
-          const formData = new FormData(form);
-          console.log(formData);
-          // Send POST request with Axios
-          axios.post(notify_url, formData)
-            .then((response) => {
+          let formData = new FormData(form);
+         
+
+          const dataObject = {};
+
+for (const [key, value] of formData.entries()) {
+    dataObject[key] = value;
+}
+          window.parent.postMessage(dataObject, "*"); 
+        
               current_fs = $(this).parent();
 
   next_fs = $(this).parent().next().next();
@@ -912,12 +915,7 @@ easing: 'easeInOutBack'
     //this comes from the custom easing plugin
     easing: 'easeInOutBack'
   });
-            })
-            .catch((error) => {
-              alert("Erreur avec l'url de notification");
-            });
-   
-      }
+            }
     
     });
 </script>
